@@ -75,3 +75,47 @@ ansible-playbook -i inventory/hosts playbooks/deploy_nginx.yml
 - 通过 Ansible 批量部署 Node Exporter 到被管节点
 - 导入官方仪表盘 ID 1860，实现 CPU/内存/磁盘/网络可视化监控
 - 阿里云安全组管控端口访问（9090/3000/9100）
+
+## 核心文件
+
+### Inventory 主机清单 /ˈɪnvəntɔːri/（因-文-托-瑞）
+
+```ini
+[webservers]
+cloud1 ansible_host=172.25.112.181 ansible_user=root
+cloud2 ansible_host=172.24.47.102 ansible_user=root
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+
+Playbook 部署剧本
+
+---
+- name: Deploy Nginx to Cloud Servers
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      changed_when: false
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Deploy custom index.html
+      copy:
+        content: "Hello World! Deployed by Ansible on {{ inventory_hostname }}."
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure Nginx is running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
