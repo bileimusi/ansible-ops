@@ -28,30 +28,42 @@ plain
    ```bash
    sudo apt update && sudo apt install ansible -y
 所有节点配置 SSH 免密登录
+
 bash
 ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
 ssh-copy-id root@目标IP
 被管节点配置 sudo 免密（NOPASSWD）
 执行部署
+
 bash
 cd ~/ansible-ops
 ansible-playbook -i inventory/hosts playbooks/deploy_nginx.yml
+
 CI/CD 流水线
 基于 GitHub Actions /ˈɡɪthʌb ˈækʃənz/（GitHub 自动化动作）实现代码提交后自动触发部署
 工作流覆盖：代码拉取 → SSH 连通测试 → Ansible Playbook 执行 → 部署结果验证
 部署耗时 80 秒内完成
+
 踩坑记录
 地域不一致：aliyun2 默认创建到了华东 1（杭州），需释放重建到华南 3（广州），否则内网不通
+
 Ubuntu 22.04 云镜像禁用 root 密码登录：云镜像默认 PermitRootLogin prohibit-password + PasswordAuthentication no，需通过阿里云 Workbench 登录后修改 sshd_config 及 sshd_config.d/ 子配置
+
 SSH 子配置覆盖：sshd_config.d/ 目录下的配置优先级高于主配置，追加配置到 99-allow-root.conf 确保最后加载
 安全组端口未开放：默认安全组只放行 22/3389，需手动添加 HTTP(80) 端口规则
+
 GitHub 下载超时：国内服务器从 GitHub 直接下载二进制包大概率超时，改用 apt 官方源或国内镜像
 监控体系（关联项目）
+
 基于 Prometheus /prəˈmiːθiəs/ + Grafana /ˈɡræfənə/ 构建 3 节点监控体系
+
 通过 Ansible 批量部署 Node Exporter /noʊd ɪkˈspɔːrtər/（节点指标导出器）到被管节点
 导入官方仪表盘 ID 1860，实现 CPU / 内存 / 磁盘 / 网络可视化监控
+
 阿里云安全组管控端口访问（9090 / 3000 / 9100）
+
 监控项目独立仓库：github.com/bileimusi/prometheus-monitoring
+
 # Ansible 云运维实践 - 阿里云 ECS
 
 基于阿里云 ECS 3 节点集群，使用 Ansible 实现 Nginx 自动化批量部署。
